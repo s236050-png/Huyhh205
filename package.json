@@ -1,0 +1,7 @@
+{
+  "name": "huyhh205-workspace",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix mern-demo start"
+  }
+}
