@@ -11,15 +11,23 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('MONGODB_URI chưa được cấu hình');
-}
+const ensureDbConnected = (res) => {
+  if (mongoose.connection.readyState !== 1) {
+    res.status(503).json({
+      message: 'Cơ sở dữ liệu chưa kết nối. Vui lòng kiểm tra MongoDB URI hoặc mạng.'
+    });
+    return false;
+  }
+  return true;
+};
 
 app.get('/api/hello', (req, res) => {
   res.json({ message: "Backend đang hoạt động!" });
 });
 
 app.get('/api/students', async (req, res) => {
+  if (!ensureDbConnected(res)) return;
+
   try {
     const students = await Student.find();
     res.json(students);
@@ -29,6 +37,8 @@ app.get('/api/students', async (req, res) => {
 });
 
 app.post('/api/students', async (req, res) => {
+  if (!ensureDbConnected(res)) return;
+
   try {
     const newStudent = await Student.create(req.body);
     res.status(201).json(newStudent);
@@ -44,6 +54,8 @@ app.post('/api/students', async (req, res) => {
 });
 
 app.put('/api/students/:id', async (req, res) => {
+  if (!ensureDbConnected(res)) return;
+
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'ID sinh viên không hợp lệ' });
@@ -66,6 +78,8 @@ app.put('/api/students/:id', async (req, res) => {
 });
 
 app.delete('/api/students/:id', async (req, res) => {
+  if (!ensureDbConnected(res)) return;
+
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'ID sinh viên không hợp lệ' });
@@ -82,12 +96,22 @@ app.delete('/api/students/:id', async (req, res) => {
   }
 });
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log("Kết nối MongoDB Atlas thành công!");
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((error) => {
-    console.error('Không thể kết nối MongoDB:', error.message);
-    process.exitCode = 1;
-  });
+const startServer = () => {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+};
+
+if (!process.env.MONGODB_URI) {
+  console.warn('MONGODB_URI chưa được cấu hình. API dữ liệu sẽ trả về 503 cho đến khi MongoDB sẵn sàng.');
+  startServer();
+} else {
+  mongoose.connect(process.env.MONGODB_URI)
+    .then(() => {
+      console.log('Kết nối MongoDB Atlas thành công!');
+      startServer();
+    })
+    .catch((error) => {
+      console.error('Không thể kết nối MongoDB:', error.message);
+      console.warn('Khởi động server ngay cả khi MongoDB không sẵn sàng để API health vẫn hoạt động.');
+      startServer();
+    });
+}

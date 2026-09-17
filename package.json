@@ -2,6 +2,9 @@
   "name": "huyhh205-workspace",
   "private": true,
   "scripts": {
-    "start": "npm --prefix mern-demo start"
+    "dev": "docker compose up -d mongo && npm --prefix mern-demo start & npm --prefix client run dev -- --host 0.0.0.0",
+    "start": "docker compose up -d --build",
+    "stop": "docker compose down",
+    "logs": "docker compose logs -f"
   }
 }
