@@ -2,7 +2,7 @@
   "name": "huyhh205-workspace",
   "private": true,
   "scripts": {
-    "dev": "docker compose up -d mongo && npm --prefix mern-demo start & npm --prefix client run dev -- --host 0.0.0.0",
+    "dev": "docker compose up -d mongo && MONGODB_URI=mongodb://127.0.0.1:27017/studentdb npm --prefix mern-demo start & npm --prefix client run dev -- --host 0.0.0.0",
     "start": "docker compose up -d --build",
     "stop": "docker compose down",
     "logs": "docker compose logs -f"

@@ -8,6 +8,10 @@ const Student = require('./models/Student');
 const app = express();
 app.use(cors());
 app.use(express.json());
+// Trang chủ kiểm tra Backend
+app.get('/', (req, res) => {
+  res.send('Backend quản lý sinh viên đang hoạt động!');
+});
 
 const PORT = process.env.PORT || 5000;
 
